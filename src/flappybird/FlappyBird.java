@@ -1,8 +1,7 @@
 package flappybird;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -49,7 +48,7 @@ public class FlappyBird implements ActionListener, MouseListener, KeyListener
 		rand = new Random();
 
 		jframe.add(renderer);
-		jframe.setTitle("Flappy Bird");
+		jframe.setTitle("Crappy Birds");
 		jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		jframe.setSize(WIDTH, HEIGHT);
 		jframe.addMouseListener(this);
@@ -88,8 +87,7 @@ public class FlappyBird implements ActionListener, MouseListener, KeyListener
 
 	public void paintColumn(Graphics g, Rectangle column)
 	{
-		g.setColor(Color.black.darker());
-		g.fillRect(column.x, column.y, column.width, column.height);
+		Scene.pipe((Graphics2D) g, column);
 	}
 
 	public void jump()
@@ -169,7 +167,7 @@ public class FlappyBird implements ActionListener, MouseListener, KeyListener
 
 			for (Rectangle column : columns)
 			{
-				if (column.y == 0 && bird.x + bird.width / 2 > column.x + column.width / 2 - 10 && bird.x + bird.width / 2 < column.x + column.width / 2 + 10)
+				if (!gameOver && column.y == 0 && bird.x + bird.width / 2 > column.x + column.width / 2 - 10 && bird.x + bird.width / 2 < column.x + column.width / 2 + 10)
 				{
 					score++;
                                         score2=score;
@@ -213,48 +211,35 @@ public class FlappyBird implements ActionListener, MouseListener, KeyListener
 		renderer.repaint();
 	}
 
-	public void repaint(Graphics g)
+	public void repaint(Graphics g0)
 	{
-		g.setColor(Color.orange);
-		g.fillRect(0, 0, WIDTH, HEIGHT);
-
-		g.setColor(Color.DARK_GRAY);
-		g.fillRect(0, HEIGHT - 120, WIDTH, 120);
-
-		g.setColor(Color.DARK_GRAY);
-		g.fillRect(0, HEIGHT - 120, WIDTH, 20);
-
-		g.setColor(Color.white);
-		g.fillRect(bird.x, bird.y, bird.width, bird.height);
+		Graphics2D g = (Graphics2D) g0;
+		Scene.smooth(g);
+		Scene.background(g, WIDTH, HEIGHT, 120, ticks, started);
 
 		for (Rectangle column : columns)
 		{
 			paintColumn(g, column);
 		}
 
-		g.setColor(Color.white);
-		g.setFont(new Font("Serif", 1,70));
+		Scene.bird(g, bird, yMotion, ticks, !gameOver);
+
+		if (gameOver && score2 > HighScore)
+		{
+			HighScore = score2;
+		}
 
 		if (!started)
 		{
-			g.drawString("Welcome to Crappy Birds, click to begin", 30, 300);
+			Scene.startCard(g, WIDTH, HEIGHT, HighScore);
 		}
-
-		if (gameOver)
+		else if (gameOver)
 		{
-                    g.drawString("Score:  "+String.valueOf(score2), 100, 100);
-                        g.setColor(Color.red);
-                        g.drawString("Game Over!",100, 300 );
-                        g.setColor(Color.white);
-                        if(score2>HighScore)
-                            HighScore=score2;
-                        g.drawString("High Score: "+String.valueOf(HighScore), 100,500);
-                    g.drawString("Try again?", 100, HEIGHT / 2 - 50);
+			Scene.gameOverCard(g, WIDTH, HEIGHT, score2, HighScore);
 		}
-
-		if (!gameOver && started)
+		else
 		{
-			g.drawString(String.valueOf(score), WIDTH / 2 - 25, 100);
+			Scene.scorePill(g, WIDTH, score);
 		}
 	}
 
